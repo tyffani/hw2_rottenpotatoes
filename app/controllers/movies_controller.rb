@@ -9,55 +9,133 @@ class MoviesController < ApplicationController
   def index
     @all_ratings = Movie.all_ratings()
     sort = params[:sort] 
-    """
-    param_rating = params[:ratings]
-    if param_rating 
-      ratings = param_rating.keys()
-    end
-    filtered_movies = []
-    if ratings 
-      ratings.each do |r|
-        filtered_movies << Movie.find_all_by_rating(r)
-        #raise filtered_movies.inspect
-      end
-    end
-    """
-
     param_rating = params[:ratings]
     if param_rating
-      ratings = param_rating.keys()
+      ratings = param_rating
     end
-    #raise filtered_movies.inspect
 
     if !ratings
       @ratings = @all_ratings
     else
       @ratings = ratings
     end
-
-    if sort == "title"
-      @title_header = "hilite"
-      if ratings
-        @movies = Movie.find_all_by_rating(ratings).sort_by { |m| m.title}
-      else
-        @movies = Movie.all.sort_by {|m| m.title}
-      end
-    elsif sort == "release_date_header"
-      @release_date_header = "hilite"
-      if ratings
-        @movies = Movie.find_all_by_rating(ratings).sort_by {|m| m.release_date}
-      else
-        @movies = Movie.all.sort_by {|m| m.release_date}
-      end
+    redirect = false
+    if ratings
+      session[:ratings] = params[:ratings]
+    elsif params[:commit] == 'Refresh' || !ratings
+      params[:ratings] = @all_ratings
     else
-      if ratings
-        @movies = Movie.find_all_by_rating(ratings)
-      else
-        @movies = Movie.all
+      params[:ratings] = session[:ratings]
+      if !session[:ratings].nil?
+        redirect = true
       end
     end
-  end
+    if sort
+      session[:sort] = params[:sort]
+    else
+      params[:sort] = session[:sort]
+      redirect = true
+    end
 
+    if redirect
+      redirect_to movies_path(params)
+    end
+  
+    #raise params[:ratings].inspect THIS IS GIVING ME ARRAY
+    #raise session[:ratings].inspect  THIS IS GIVING ME HASH
+    if params[:ratings].class == 'Array'
+      @movies = Movie.find_all_by_rating(session[:ratings])
+    else
+      raise params[:ratings].inspect 
+      @movies = Movie.find_all_by_rating(session[:ratings].keys())
+    end
+#:order => params[:sorted], :conditions => ['rating IN (?)', params[:ratings]])
+    """
+    session[:params] = params
+    if sort == 'title'
+      @title_header = 'hilite'
+      if ratings
+        @movies = Movie.find_all_by_rating(params[:ratings]).sort_by { |m| m.title}
+      elsif params[:commit] == 'Refresh' || !ratings
+        @movies = Movie.all.sort_by {|m| m.title}
+      else
+        if ratings
+          redirect_to movies_path(params)
+        end
+      end
+    elsif sort == 'release_date_header'
+      @release_date_header = 'hilite'
+      if ratings
+        @movies = Movie.find_all_by_rating(params[:ratings]).sort_by {|m| m.release_date}
+      elsif params[:commit] == 'Refresh' || !ratings
+        @movies = Movie.all.sort_by {|m| m.release_date}
+      else
+        if ratings
+          redirect_to movies_path(params)
+        end
+      end
+    else
+      redirect_to movies_path(params)
+      if ratings
+        @movies = Movie.find_all_by_rating(params[:ratings])
+      elsif params[:commit] == 'Refresh' || !ratings
+        @movies = Movie.find_all_by_rating(params[:ratings])
+      else
+        if ratings
+          redirect_to movies_path(params)
+        end
+      end
+    end
+    """
+    """
+    if sort == 'title'
+      session[:sorted] = params[:sorted]
+      @title_header = 'hilite'
+      if ratings
+        session[:ratings] = params[:ratings]
+        @movies = Movie.find_all_by_rating(params[:ratings]).sort_by { |m| m.title}
+      elsif params[:commit] == 'Refresh' || !ratings
+        params[:ratings] = @all_ratings
+        @movies = Movie.all.sort_by {|m| m.title}
+      else
+        params[:ratings] = session[:ratings]
+        if ratings
+          redirect_to movies_path(params)
+        end
+      end
+    elsif sort == 'release_date_header'
+      session[:sorted] = params[:sorted]
+      @release_date_header = 'hilite'
+      if ratings
+        session[:ratings] = params[:ratings]
+        @movies = Movie.find_all_by_rating(params[:ratings]).sort_by {|m| m.release_date}
+      elsif params[:commit] == 'Refresh' || !ratings
+        params[:ratings] = @all_ratings
+        @movies = Movie.all.sort_by {|m| m.release_date}
+      else
+        params[:ratings] = session[:ratings]
+        if ratings
+          redirect_to movies_path(params)
+        end
+      end
+    else
+      params[:sorted] = session[:sorted]
+      redirect_to movies_path(params)
+      if ratings
+        session[:ratings] = params[:ratings]
+        @movies = Movie.find_all_by_rating(params[:ratings])
+      elsif params[:commit] == 'Refresh' || !ratings
+        params[:ratings] = @all_ratings
+        @movies = Movie.find_all_by_rating(params[:ratings])
+      else
+        if ratings
+          redirect_to movies_path(params)
+        end
+      end
+    end
+    """
+  end
+  
   def new
     # default: render 'new' template
   end
