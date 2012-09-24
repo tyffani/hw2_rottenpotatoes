@@ -29,7 +29,12 @@ class MoviesController < ApplicationController
     end
     #raise filtered_movies.inspect
 
-   
+    if !ratings
+      @ratings = @all_ratings
+    else
+      @ratings = ratings
+    end
+
     if sort == "title"
       @title_header = "hilite"
       if ratings
