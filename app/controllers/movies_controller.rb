@@ -7,15 +7,49 @@ class MoviesController < ApplicationController
   end
 
   def index
-    @all_ratings = ["G", "PG", "PG-13", "R"]
-    #@all_ratings = Movie.all_ratings
-    sort = params[:sort]
+    @all_ratings = Movie.all_ratings()
+    sort = params[:sort] 
+    """
+    param_rating = params[:ratings]
+    if param_rating 
+      ratings = param_rating.keys()
+    end
+    filtered_movies = []
+    if ratings 
+      ratings.each do |r|
+        filtered_movies << Movie.find_all_by_rating(r)
+        #raise filtered_movies.inspect
+      end
+    end
+    """
+
+    param_rating = params[:ratings]
+    if param_rating
+      ratings = param_rating.keys()
+    end
+    #raise filtered_movies.inspect
+
+   
     if sort == "title"
-      @movies = Movie.all.sort_by {|m| m.title}
-    elsif sort == "release_date"
-      @movies = Movie.all.sort_by {|m| m.release_date}
+      @title_header = "hilite"
+      if ratings
+        @movies = Movie.find_all_by_rating(ratings).sort_by { |m| m.title}
+      else
+        @movies = Movie.all.sort_by {|m| m.title}
+      end
+    elsif sort == "release_date_header"
+      @release_date_header = "hilite"
+      if ratings
+        @movies = Movie.find_all_by_rating(ratings).sort_by {|m| m.release_date}
+      else
+        @movies = Movie.all.sort_by {|m| m.release_date}
+      end
     else
-      @movies = Movie.all
+      if ratings
+        @movies = Movie.find_all_by_rating(ratings)
+      else
+        @movies = Movie.all
+      end
     end
   end
 
