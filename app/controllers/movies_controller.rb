@@ -40,6 +40,11 @@ class MoviesController < ApplicationController
     end
 #:order => params[:sorted], :conditions => ['rating IN (?)', params[:ratings]])
     """
+    if !params && !session[:params]
+      p = {:sort => @all_ratings, :ratings => nil}
+      session[:params] = p
+      redirect_to movies_path(session[:params])
+    end
     if params.length == 2 && session[:params]
       flash.keep
       p = session[:params]
